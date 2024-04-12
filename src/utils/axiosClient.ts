@@ -25,6 +25,8 @@ export const client = {
   },
 
   async delete(url: string) {
-    return instance.delete(url);
+    const response = await instance.delete(url);
+
+    return response.data;
   },
 };

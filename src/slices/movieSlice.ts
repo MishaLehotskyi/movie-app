@@ -77,7 +77,7 @@ const movieSlice = createSlice({
       state.hasError = true;
     });
     builder.addCase(deleteMovie.fulfilled, (state, action) => {
-      state.movies = state.movies.filter(movie => movie.id !== action.payload.data.id);
+      state.movies = state.movies.filter(movie => movie.id !== action.payload.id);
     });
   },
 });

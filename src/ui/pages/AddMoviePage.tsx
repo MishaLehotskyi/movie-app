@@ -3,89 +3,80 @@ import { Movie } from '../../types/Movie';
 import { client } from '../../utils/axiosClient';
 
 export const AddMoviePage = () => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [rating, setRating] = useState('');
-  const [date, setDate] = useState('');
-  const [genre, setGenre] = useState('');
-  const [actor, setActor] = useState('');
-  const [director, setDirector] = useState('');
-  const [imgUrl, setImgUrl] = useState('');
-  const [genres, setGenres] = useState<string[]>([]);
-  const [actors, setActors] = useState<string[]>([]);
+  const initialMovie: Omit<Movie, 'id'> = {
+    title: '',
+    description: '',
+    rating: 0,
+    release_date: '',
+    genre: [],
+    actors: [],
+    director: '',
+    image: '',
+  };
+  const [movie, setMovie] = useState<Omit<Movie, 'id'>>(initialMovie);
+  const {
+    title,
+    description,
+    rating,
+    release_date,
+    genre,
+    actors,
+    director,
+    image,
+  } = movie;
+  const [currentGenre, setCurrentGenre] = useState('');
+  const [currentActor, setCurrentActor] = useState('');
   const [showRules, setShowRules] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const canSubmit = title.trim() && description.trim() && rating.trim()
-      && date.trim() && director.trim() && imgUrl.trim() && genres.length > 0 && actors.length > 0;
+  const canSubmit = title.trim() && description.trim() && !!rating
+      && release_date.trim() && director.trim() && image.trim() && genre.length > 0 && actors.length > 0;
 
 
-  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    setTitle(e.target.value);
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    event.preventDefault();
+
+    setMovie({...movie, [event.target.name]: event.target.value});
   };
 
-  const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    e.preventDefault();
-    setDescription(e.target.value);
-  };
-
-  const handleRatingChange = (e: ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    setRating(e.target.value);
-  };
-
-  const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    setDate(e.target.value);
-  };
 
   const handleGenreChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    setGenre(e.target.value);
+    setCurrentGenre(e.target.value);
   };
 
   const handleActorChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    setActor(e.target.value);
+    setCurrentActor(e.target.value);
   };
 
-  const handleDirectorChange = (e: ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    setDirector(e.target.value);
-  };
-
-  const handleImgUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    setImgUrl(e.target.value);
-  };
 
   const handleGenreAdd = () => {
-    setGenres(prevState => [...prevState, genre.trim()]);
-    setGenre('');
+    setMovie(prevState => ({ ...prevState, genre: [...prevState.genre, currentGenre.trim()] }));
+    setCurrentGenre('');
   };
 
   const handleGenreDelete = (index: number) => {
-    setGenres(prevState => {
-      const arr = [...prevState];
+    setMovie(prevState => {
+      const arr = [...prevState.genre];
 
       arr.splice(index, 1);
 
-      return arr;
+      return ({ ...prevState, genre: arr });
     });
   };
 
   const handleActorAdd = () => {
-    setActors(prevState => [...prevState, actor.trim()]);
-    setActor('');
+    setMovie(prevState => ({ ...prevState, actors: [...prevState.actors, currentActor.trim()] }));
+    setCurrentActor('');
   };
 
   const handleActorDelete = (index: number) => {
-    setActors(prevState => {
-      const arr = [...prevState];
+    setMovie(prevState => {
+      const arr = [...prevState.actors];
 
       arr.splice(index, 1);
 
-      return arr;
+      return ({ ...prevState, actors: arr });
     });
   };
 
@@ -93,16 +84,7 @@ export const AddMoviePage = () => {
     e.preventDefault();
 
     if (canSubmit) {
-      const data: Omit<Movie, 'id'> = {
-        title,
-        description,
-        rating: Number(rating),
-        release_date: date.split('.').join('-'),
-        director,
-        image: imgUrl,
-        actors,
-        genre: genres,
-      };
+      const data: Omit<Movie, 'id'> = movie;
 
       client.post('/movies', data);
       setShowRules(false);
@@ -117,16 +99,7 @@ export const AddMoviePage = () => {
   };
 
   const handleClearForm = () => {
-    setTitle('');
-    setRating('');
-    setDate('');
-    setGenre('');
-    setActor('');
-    setGenres([]);
-    setActors([]);
-    setDirector('');
-    setDescription('');
-    setImgUrl('');
+    setMovie(initialMovie);
   };
 
   return (
@@ -140,8 +113,8 @@ export const AddMoviePage = () => {
         </label>
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="title" type="text" placeholder="Title"
-          value={title} onChange={handleTitleChange}
+          id="title" type="text" name="title" placeholder="Title"
+          value={title} onChange={handleChange}
         />
       </div>
       <div className="mb-4">
@@ -150,8 +123,8 @@ export const AddMoviePage = () => {
         </label>
         <textarea
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="description" placeholder="Description"
-          value={description} onChange={handleDescriptionChange}
+          id="description" name="description" placeholder="Description"
+          value={description} onChange={handleChange}
         />
       </div>
       <div className="mb-4">
@@ -160,8 +133,8 @@ export const AddMoviePage = () => {
         </label>
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="rating" type="number" min="0" max="10" step="0.1" placeholder="Rating"
-          value={rating} onChange={handleRatingChange}
+          id="rating" type="number" name="rating" min="0" max="10" step="0.1" placeholder="Rating"
+          value={rating} onChange={handleChange}
         />
       </div>
       <div className="mb-4">
@@ -170,8 +143,8 @@ export const AddMoviePage = () => {
         </label>
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="release_date" type="date" placeholder="Release Date"
-          value={date} onChange={handleDateChange}
+          id="release_date" type="date" name="release_date" placeholder="Release Date"
+          value={release_date} onChange={handleChange}
         />
       </div>
       <label className="block text-gray-700 text-sm font-bold mr-2" htmlFor="genre">
@@ -181,20 +154,20 @@ export const AddMoviePage = () => {
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           id="genre" type="text" placeholder="Genre"
-          value={genre} onChange={handleGenreChange}
+          value={currentGenre} onChange={handleGenreChange}
         />
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
           onClick={handleGenreAdd}
-          disabled={!genre.trim()}
+          disabled={!currentGenre.trim()}
         >
           Add
         </button>
       </div>
-      {genres.map((genre, index) => (
-        <span key={genre} className="inline-flex items-center bg-blue-500 text-white font-semibold px-3 py-1 rounded-full text-sm mr-2 mb-2">
-          <span>{genre}</span>
+      {genre.map((item, index) => (
+        <span key={item} className="inline-flex items-center bg-blue-500 text-white font-semibold px-3 py-1 rounded-full text-sm mr-2 mb-2">
+          <span>{item}</span>
           <button
             className="ml-1 bg-red-500 text-white font-semibold px-2 py-0.5 rounded-full text-sm"
             onClick={() => {
@@ -212,20 +185,20 @@ export const AddMoviePage = () => {
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           id="actors" type="text" placeholder="Actors"
-          value={actor} onChange={handleActorChange}
+          value={currentActor} onChange={handleActorChange}
         />
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
           onClick={handleActorAdd}
-          disabled={!actor.trim()}
+          disabled={!currentActor.trim()}
         >
           Add
         </button>
       </div>
-      {actors.map((actor, index) => (
-        <span key={actor} className="inline-flex items-center bg-green-500 text-white font-semibold px-3 py-1 rounded-full text-sm mr-2 mb-2">
-          <span>{actor}</span>
+      {actors.map((item, index) => (
+        <span key={item} className="inline-flex items-center bg-green-500 text-white font-semibold px-3 py-1 rounded-full text-sm mr-2 mb-2">
+          <span>{item}</span>
           <button
             className="ml-1 bg-red-500 text-white font-semibold px-2 py-0.5 rounded-full text-sm"
             onClick={() => {
@@ -242,8 +215,8 @@ export const AddMoviePage = () => {
         </label>
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="director" type="text" placeholder="Director"
-          value={director} onChange={handleDirectorChange}
+          id="director" type="text" name="director" placeholder="Director"
+          value={director} onChange={handleChange}
         />
       </div>
       <div className="mb-4">
@@ -252,8 +225,8 @@ export const AddMoviePage = () => {
         </label>
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="image" type="text" placeholder="Image URL"
-          value={imgUrl} onChange={handleImgUrlChange}
+          id="image" type="text" name="image" placeholder="Image URL"
+          value={image} onChange={handleChange}
         />
       </div>
       {showSuccess && (
